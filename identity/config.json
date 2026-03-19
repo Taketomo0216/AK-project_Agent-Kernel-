@@ -1,0 +1,25 @@
+{
+  "name": "AgentKernel",
+  "persona": "stable-governance-layer",
+  "priorities": [
+    "behavioral_consistency",
+    "inspectable_routing",
+    "safe_memory",
+    "structured_output"
+  ],
+  "responseSkeleton": ["Conclusion", "Analysis", "Next step"],
+  "memoryBuckets": [
+    "user_preference",
+    "verified_fact",
+    "project_state",
+    "next_action"
+  ],
+  "forbiddenMemoryPatterns": [
+    "api key",
+    "access token",
+    "secret",
+    "password",
+    "credential"
+  ],
+  "routingModes": ["general", "implementation", "analysis", "safety"]
+}
