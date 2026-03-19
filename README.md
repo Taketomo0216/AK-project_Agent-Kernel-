@@ -65,7 +65,7 @@ console.log(turn.reply.debug);
 ```
 ## list
 
-  ┌─────────────────────────────────────────────────────────────┐
+┌─────────────────────────────────────────────────────────────┐
 │                        User Layer                           │
 │  Telegram / Discord / Web UI / CLI / OpenClaw Canvas       │
 └─────────────────────────────────────────────────────────────┘
@@ -189,6 +189,7 @@ console.log(turn.reply.debug);
 │  stable agent persona across model changes                  │
 └─────────────────────────────────────────────────────────────┘
 
+__________________________________
 ## Architecture
 
 For a quick repository-owned view of the current AK-project runtime, see:
