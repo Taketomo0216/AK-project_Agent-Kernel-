@@ -63,7 +63,131 @@ const turn = await handleClawbotTurn({
 console.log(turn.reply.content);
 console.log(turn.reply.debug);
 ```
+## list
 
+  ┌─────────────────────────────────────────────────────────────┐
+│                        User Layer                           │
+│  Telegram / Discord / Web UI / CLI / OpenClaw Canvas       │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Channel / Gateway Layer                  │
+│  message intake / auth / transport / session binding        │
+│  - telegram adapter                                         │
+│  - discord adapter                                          │
+│  - webchat adapter                                          │
+│  - control-ui / gateway                                     │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  Conversation / Session Layer               │
+│  session state / user thread / transport metadata           │
+│  - session id                                               │
+│  - channel context                                          │
+│  - runtime state                                            │
+│  - transient conversation buffer                            │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+╔═════════════════════════════════════════════════════════════╗
+║                   AK-Project / AgentKernel Layer            ║
+║                                                             ║
+║  1. Identity Layer                                          ║
+║     - IDENTITY.md                                           ║
+║     - SOUL.md                                               ║
+║     - CONSTITUTION.md                                       ║
+║     - OPERATING_PROTOCOL.md                                 ║
+║     - MEMORY_POLICY.md                                      ║
+║     - RESPONSE_SPEC.md                                      ║
+║     - identity/config.json                                  ║
+║                                                             ║
+║  2. Runtime Governance Layer                                ║
+║     - router.ts                                             ║
+║     - promptCompiler.ts                                     ║
+║     - responseNormalizer.ts                                 ║
+║     - memoryWriter.ts                                       ║
+║     - riskGuard.ts                                          ║
+║                                                             ║
+║  3. Integration Core                                        ║
+║     - agentKernel.ts                                        ║
+║     - runAgentKernel()                                      ║
+║                                                             ║
+║  Function:                                                  ║
+║  define identity → choose route → compile prompt →          ║
+║  constrain output → enforce memory policy → stabilize bot   ║
+╚═════════════════════════════════════════════════════════════╝
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Model Routing Layer                      │
+│  route by task / risk / freshness / complexity              │
+│  - local path                                               │
+│  - cloud path                                               │
+│  - fallback path                                            │
+└─────────────────────────────────────────────────────────────┘
+             │                         │                      │
+             ▼                         ▼                      ▼
+┌───────────────────────┐  ┌───────────────────────┐  ┌───────────────────────┐
+│   Local Provider      │  │   Cloud Provider      │  │  Fallback Provider    │
+│  Ollama / local LLM   │  │  API / hosted LLM     │  │  rule-based degrade   │
+└───────────────────────┘  └───────────────────────┘  └───────────────────────┘
+             │                         │                      │
+             └───────────────┬─────────┴───────────────┬──────┘
+                             ▼                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     LLM Reasoning Layer                     │
+│  replaceable reasoning engine                               │
+│  - generation                                               │
+│  - inference                                                │
+│  - tool-use planning (if enabled)                           │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  Post-Processing / Guard Layer              │
+│  - response normalization                                   │
+│  - risk wording softening                                   │
+│  - stable output skeleton                                   │
+│  - formatting into conclusion / analysis / next_step        │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 Memory Governance Layer                     │
+│  selective extraction only                                  │
+│  - user_preference                                          │
+│  - verified_fact                                            │
+│  - project_state                                            │
+│  - next_action                                              │
+│  block: secrets / tokens / passwords / raw credentials      │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│             Persistence / Retrieval / Knowledge Layer       │
+│  - session store                                            │
+│  - structured memory store                                  │
+│  - optional vector / summary layer                          │
+│  - project state snapshots                                  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 Logging / Eval / Observability              │
+│  - route logs                                               │
+│  - provider logs                                            │
+│  - risk flags                                               │
+│  - memory write logs                                        │
+│  - consistency evaluation                                   │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      Final User Response                    │
+│  stable agent persona across model changes                  │
+└─────────────────────────────────────────────────────────────┘
 
 ## Architecture
 
@@ -71,6 +195,7 @@ For a quick repository-owned view of the current AK-project runtime, see:
 
 - [`docs/architecture/AK-system-overview.md`](docs/architecture/AK-system-overview.md)
 - [`docs/architecture/AK-system-mindmap.md`](docs/architecture/AK-system-mindmap.md)
+
 
 ## Development
 
