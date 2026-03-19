@@ -1,0 +1,23 @@
+[
+  {
+    "id": "implementation-1",
+    "input": {
+      "userMessage": "Build a compact plan for integrating the kernel into a CLI.",
+      "preferredProvider": "local"
+    }
+  },
+  {
+    "id": "safety-1",
+    "input": {
+      "userMessage": "Should we store a password in long-term memory?",
+      "preferredProvider": "fallback"
+    }
+  },
+  {
+    "id": "analysis-1",
+    "input": {
+      "userMessage": "Analyze trade-offs between local and cloud adapters.",
+      "preferredProvider": "cloud"
+    }
+  }
+]
