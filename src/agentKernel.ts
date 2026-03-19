@@ -1,7 +1,7 @@
-import { loadIdentityBundleWithMeta } from './identityLoader';
+import { loadIdentityBundle } from './identityLoader';
 import { KernelLogger } from './logger';
 import { extractMemory } from './memoryWriter';
-import { analyzeCompiledPrompt, compilePrompt } from './promptCompiler';
+import { compilePrompt } from './promptCompiler';
 import { CloudProvider } from './providers/cloudProvider';
 import { FallbackProvider } from './providers/fallbackProvider';
 import { LocalProvider } from './providers/localProvider';
@@ -18,42 +18,29 @@ function pickProvider(input: KernelInput): ProviderAdapter {
 
 export async function runAgentKernel(input: KernelInput): Promise<KernelOutput> {
   const logger = new KernelLogger();
-  const identityLoad = loadIdentityBundleWithMeta();
-  logger.add({
-    stage: 'identity_loaded',
-    message: 'identity_loaded',
-    data: { identityLoaded: identityLoad.identityLoaded, loadedFiles: identityLoad.loadedFiles }
-  });
-
+  const identity = loadIdentityBundle();
   const routeDecision = selectRoute(input);
-  logger.add({ stage: 'route_selected', message: 'route_selected', data: { route: routeDecision.route, reason: routeDecision.reason } });
+  logger.add({ stage: 'routing', message: routeDecision.reason, data: { route: routeDecision.route } });
 
-  const prompt = compilePrompt(identityLoad.bundle, input, routeDecision);
-  const promptDiagnostics = analyzeCompiledPrompt(prompt);
-  logger.add({ stage: 'prompt_compiled', message: 'prompt_compiled', data: { ...promptDiagnostics } });
-
+  const prompt = compilePrompt(identity, input, routeDecision);
   const provider = pickProvider(input);
-  const providerResponse = await provider.generate({ prompt, input, route: routeDecision.route });
-  logger.add({
-    stage: 'provider_responded',
-    message: 'provider_responded',
-    data: { provider: providerResponse.provider, modelLabel: providerResponse.modelLabel, route: routeDecision.route }
-  });
+  logger.add({ stage: 'provider', message: 'Selected provider adapter.', data: { provider: provider.kind } });
 
+  const providerResponse = await provider.generate({ prompt, input, route: routeDecision.route });
   const normalizedResponse = normalizeResponse(providerResponse.content);
   logger.add({
-    stage: 'response_normalized',
-    message: 'response_normalized',
-    data: { provider: providerResponse.provider, preservesSkeleton: /^Conclusion:[\s\S]*Analysis:[\s\S]*Next step:/m.test(normalizedResponse) }
+    stage: 'normalization',
+    message: 'Normalized provider output into the stable response skeleton.',
+    data: { provider: providerResponse.provider, modelLabel: providerResponse.modelLabel }
   });
 
   const riskFlags = [
     ...new Set([...detectRiskWording(input.userMessage), ...detectRiskWording(providerResponse.content)])
   ];
-  logger.add({ stage: 'risk_checked', message: 'risk_checked', data: { riskFlags, route: routeDecision.route } });
+  logger.add({ stage: 'risk', message: 'Evaluated request and response wording for risk markers.', data: { riskFlags } });
 
   const memoryWrites = extractMemory(input);
-  logger.add({ stage: 'memory_selected', message: 'memory_selected', data: { memoryWrites } });
+  logger.add({ stage: 'memory', message: 'Extracted allowed memory records.', data: { count: memoryWrites.length } });
 
   return {
     provider: providerResponse.provider,
