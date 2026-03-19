@@ -27,7 +27,7 @@ Human-readable identity documents live in `identity/` and a machine-consumable `
 Each adapter implements the same interface, so local, cloud, and fallback backends remain interchangeable.
 
 ### OpenClaw adapter
-`src/openclawAdapter.ts` is the reversible integration seam for the next phase. It assumes Clawbot/OpenClaw keeps its current transport and session handling, then routes each user turn through `runAgentKernel()` before returning a normalized reply.
+`src/openclawAdapter.ts` is the reversible integration seam for the next phase. It maps Clawbot/OpenClaw runtime data into `KernelInput` (`userMessage`, `taskType`, `memorySummary`, `context`, `metadata`), calls `runAgentKernel()`, and maps `KernelOutput` back into a bot reply envelope while leaving the transport/channel layer unchanged.
 
 ### Evaluation
 `eval/consistency/` contains benchmark cases and a runner that can be used to compare consistency across provider backends.
@@ -61,7 +61,8 @@ const turn = await handleClawbotTurn({
   ]
 });
 
-console.log(turn.reply);
+console.log(turn.reply.content);
+console.log(turn.reply.debug);
 ```
 
 ## Development

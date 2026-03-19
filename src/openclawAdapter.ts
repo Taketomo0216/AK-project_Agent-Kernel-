@@ -1,5 +1,5 @@
 import { runAgentKernel } from './agentKernel';
-import { KernelInput, KernelOutput, MemoryRecord, ProviderKind } from './types';
+import { KernelInput, KernelOutput, MemoryRecord, ProviderKind, TaskType } from './types';
 
 export interface ClawbotMessage {
   role: 'user' | 'assistant' | 'system';
@@ -11,14 +11,26 @@ export interface ClawbotSession {
   channelId?: string;
   userId?: string;
   providerPreference?: ProviderKind;
+  taskType?: TaskType;
   messages: ClawbotMessage[];
   projectState?: string[];
   memory?: MemoryRecord[];
+  memorySummary?: string;
+}
+
+export interface ClawbotReply {
+  content: string;
+  debug: {
+    route: string;
+    provider: ProviderKind;
+    riskFlags: string[];
+    memoryWrites: MemoryRecord[];
+  };
 }
 
 export interface ClawbotAdapterResult {
   sessionId: string;
-  reply: string;
+  reply: ClawbotReply;
   kernel: KernelOutput;
   transport: {
     channelId?: string;
@@ -36,9 +48,23 @@ function buildContext(messages: ClawbotMessage[], projectState: string[] = []): 
   return [...projectState.map((state) => `project state: ${state}`), ...transcriptContext];
 }
 
+function buildMemorySummary(memory: MemoryRecord[] = [], explicitSummary?: string): string {
+  if (explicitSummary) {
+    return explicitSummary;
+  }
+
+  if (memory.length === 0) {
+    return 'none';
+  }
+
+  return memory.map((record) => `${record.kind}: ${record.value}`).join(' | ');
+}
+
 export function mapClawbotSessionToKernelInput(session: ClawbotSession): KernelInput {
   return {
     userMessage: selectUserMessage(session.messages),
+    taskType: session.taskType ?? 'general',
+    memorySummary: buildMemorySummary(session.memory, session.memorySummary),
     context: buildContext(session.messages, session.projectState),
     memory: session.memory,
     preferredProvider: session.providerPreference,
@@ -51,13 +77,25 @@ export function mapClawbotSessionToKernelInput(session: ClawbotSession): KernelI
   };
 }
 
+export function mapKernelOutputToClawbotReply(kernel: KernelOutput): ClawbotReply {
+  return {
+    content: kernel.normalizedResponse,
+    debug: {
+      route: kernel.route,
+      provider: kernel.provider,
+      riskFlags: kernel.riskFlags,
+      memoryWrites: kernel.memoryWrites
+    }
+  };
+}
+
 export async function handleClawbotTurn(session: ClawbotSession): Promise<ClawbotAdapterResult> {
   const kernelInput = mapClawbotSessionToKernelInput(session);
   const kernel = await runAgentKernel(kernelInput);
 
   return {
     sessionId: session.sessionId,
-    reply: kernel.normalizedResponse,
+    reply: mapKernelOutputToClawbotReply(kernel),
     kernel,
     transport: {
       channelId: session.channelId,

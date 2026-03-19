@@ -19,7 +19,14 @@ const routePatterns: Array<{ route: RouteKind; patterns: RegExp[]; reason: strin
 ];
 
 export function selectRoute(input: KernelInput): RouteDecision {
-  const haystack = [input.task, input.userMessage, ...(input.context ?? [])].filter(Boolean).join(' ');
+  if (input.taskType && input.taskType !== 'general') {
+    return {
+      route: input.taskType,
+      reason: `Selected ${input.taskType} route from runtime taskType metadata.`
+    };
+  }
+
+  const haystack = [input.task, input.userMessage, input.memorySummary, ...(input.context ?? [])].filter(Boolean).join(' ');
 
   for (const candidate of routePatterns) {
     if (candidate.patterns.some((pattern) => pattern.test(haystack))) {
