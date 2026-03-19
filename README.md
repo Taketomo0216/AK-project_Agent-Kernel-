@@ -17,6 +17,7 @@ Human-readable identity documents live in `identity/` and a machine-consumable `
 - `src/memoryWriter.ts`: policy-limited memory extraction.
 - `src/riskGuard.ts`: wording-based risk checks.
 - `src/logger.ts`: structured logging for governance steps.
+- `src/openclawAdapter.ts`: minimal Clawbot/OpenClaw integration boundary that maps runtime session data into `KernelInput` and returns normalized replies without changing transport code.
 
 ### Provider adapters
 - `src/providers/localProvider.ts`
@@ -24,6 +25,9 @@ Human-readable identity documents live in `identity/` and a machine-consumable `
 - `src/providers/fallbackProvider.ts`
 
 Each adapter implements the same interface, so local, cloud, and fallback backends remain interchangeable.
+
+### OpenClaw adapter
+`src/openclawAdapter.ts` is the reversible integration seam for the next phase. It assumes Clawbot/OpenClaw keeps its current transport and session handling, then routes each user turn through `runAgentKernel()` before returning a normalized reply.
 
 ### Evaluation
 `eval/consistency/` contains benchmark cases and a runner that can be used to compare consistency across provider backends.
@@ -40,6 +44,24 @@ const result = await runAgentKernel({
 
 console.log(result.normalizedResponse);
 console.log(result.logs);
+```
+
+## OpenClaw integration sketch
+
+```ts
+import { handleClawbotTurn } from './src/openclawAdapter';
+
+const turn = await handleClawbotTurn({
+  sessionId: 'session-1',
+  channelId: 'discord',
+  providerPreference: 'local',
+  messages: [
+    { role: 'assistant', content: 'How can I help?' },
+    { role: 'user', content: 'Build a compact plan.' }
+  ]
+});
+
+console.log(turn.reply);
 ```
 
 ## Development
