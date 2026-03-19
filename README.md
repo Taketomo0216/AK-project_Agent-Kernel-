@@ -17,7 +17,6 @@ Human-readable identity documents live in `identity/` and a machine-consumable `
 - `src/memoryWriter.ts`: policy-limited memory extraction.
 - `src/riskGuard.ts`: wording-based risk checks.
 - `src/logger.ts`: structured logging for governance steps.
-- `src/openclawAdapter.ts`: minimal Clawbot/OpenClaw integration boundary that maps runtime session data into `KernelInput` and returns normalized replies without changing transport code.
 
 ### Provider adapters
 - `src/providers/localProvider.ts`

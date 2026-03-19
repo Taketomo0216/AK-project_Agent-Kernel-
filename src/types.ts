@@ -1,6 +1,5 @@
 export type ProviderKind = 'local' | 'cloud' | 'fallback';
 export type RouteKind = 'general' | 'implementation' | 'analysis' | 'safety';
-export type TaskType = 'general' | 'implementation' | 'analysis' | 'safety';
 export type MemoryKind =
   | 'user_preference'
   | 'verified_fact'
@@ -16,8 +15,6 @@ export interface MemoryRecord {
 export interface KernelInput {
   userMessage: string;
   task?: string;
-  taskType?: TaskType;
-  memorySummary?: string;
   context?: string[];
   memory?: MemoryRecord[];
   preferredProvider?: ProviderKind;
