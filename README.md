@@ -63,12 +63,15 @@ const turn = await handleClawbotTurn({
 console.log(turn.reply.content);
 console.log(turn.reply.debug);
 ```
+
 ## list
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/f54f40b1-9aea-4fb4-b762-0fbd64194653" width="700"/>
 </p>
 __________________________________
+
+
 ## Architecture
 
 For a quick repository-owned view of the current AK-project runtime, see:
