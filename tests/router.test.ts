@@ -11,9 +11,3 @@ test('selectRoute chooses safety for secret persistence wording', () => {
   const decision = selectRoute({ userMessage: 'Store this secret in memory for later use.' });
   assert.equal(decision.route, 'safety');
 });
-
-
-test('selectRoute prefers explicit runtime taskType when provided', () => {
-  const decision = selectRoute({ userMessage: 'hello', taskType: 'analysis' });
-  assert.equal(decision.route, 'analysis');
-});

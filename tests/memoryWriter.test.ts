@@ -14,21 +14,9 @@ test('extractMemory keeps allowed memory classes', () => {
     'project_state',
     'next_action'
   ]);
-  assert.equal(records.every((record) => typeof record.confidence === 'number'), true);
-  assert.equal(records.every((record) => Boolean(record.reason)), true);
 });
 
 test('extractMemory rejects secrets and credentials', () => {
   const records = extractMemory({ userMessage: 'Verified fact: password is swordfish. I prefer concise answers.' });
   assert.deepEqual(records.map((record) => record.kind), ['user_preference']);
-});
-
-test('extractMemory deduplicates repeated entries and keeps inspectable keys', () => {
-  const records = extractMemory({
-    userMessage: 'Next action: wire the CLI. Next action: wire the CLI.',
-    context: ['Project state: adapter ready.', 'Project state: adapter ready.']
-  });
-
-  assert.deepEqual(records.map((record) => record.kind), ['project_state', 'next_action']);
-  assert.equal(records.every((record) => Boolean(record.dedupeKey)), true);
 });

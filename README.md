@@ -1,39 +1,38 @@
 # AK-project AgentKernel
 
-AK-project is a repository-owned AgentKernel layer that sits between an app and an interchangeable LLM.
-It keeps identity, response structure, memory policy, and risk boundaries stable even when the model backend changes.
+Phase 2 adds a runnable AgentKernel integration layer that sits above any specific model backend. The kernel preserves stable identity, operating rules, memory policy, response structure, and routing behavior while treating the LLM as a replaceable reasoning engine.
 
-## What AK does
-- loads repository-owned identity and operating rules
-- routes requests through a provider-agnostic kernel
-- normalizes responses into a stable structure
-- applies risk checks and memory policy before returning output
-- stays ready for minimal OpenClaw / Clawbot integration
+## Phase 2 architecture
 
-## System flow
+### Identity layer
+Human-readable identity documents live in `identity/` and a machine-consumable `identity/config.json` makes the same policy available to runtime code.
 
-```mermaid
-flowchart LR
-    U[User / Clawbot] --> K[AK AgentKernel]
-    K --> R[Router]
-    R --> P[Provider]
-    P --> L[LLM]
-    L --> G[Normalizer + Risk Guard]
-    G --> M[Memory Policy]
-    M --> O[Final Response]
-```
+### Core runtime
+- `src/types.ts`: shared `KernelInput` / `KernelOutput` / provider types.
+- `src/agentKernel.ts`: main `runAgentKernel()` entrypoint.
+- `src/identityLoader.ts`: loads identity docs and JSON config into one bundle.
+- `src/router.ts`: deterministic route selection.
+- `src/promptCompiler.ts`: provider-neutral prompt compilation.
+- `src/responseNormalizer.ts`: stable response skeleton enforcement.
+- `src/memoryWriter.ts`: policy-limited memory extraction.
+- `src/riskGuard.ts`: wording-based risk checks.
+- `src/logger.ts`: structured logging for governance steps.
 
-## Quick start
+### Provider adapters
+- `src/providers/localProvider.ts`
+- `src/providers/cloudProvider.ts`
+- `src/providers/fallbackProvider.ts`
 
-### 1. Install and verify
-```bash
-npm install
-npm run build
-npm run test:unit
-npm run eval:consistency
-```
+Each adapter implements the same interface, so local, cloud, and fallback backends remain interchangeable.
 
-### 2. Run the kernel directly
+### OpenClaw adapter
+`src/openclawAdapter.ts` is the reversible integration seam for the next phase. It maps Clawbot/OpenClaw runtime data into `KernelInput` (`userMessage`, `taskType`, `memorySummary`, `context`, `metadata`), calls `runAgentKernel()`, and maps `KernelOutput` back into a bot reply envelope while leaving the transport/channel layer unchanged.
+
+### Evaluation
+`eval/consistency/` contains benchmark cases and a runner that can be used to compare consistency across provider backends.
+
+## Usage
+
 ```ts
 import { runAgentKernel } from './src/agentKernel';
 
@@ -46,7 +45,8 @@ console.log(result.normalizedResponse);
 console.log(result.logs);
 ```
 
-### 3. Run through the OpenClaw adapter
+## OpenClaw integration sketch
+
 ```ts
 import { handleClawbotTurn } from './src/openclawAdapter';
 
@@ -64,16 +64,27 @@ console.log(turn.reply.content);
 console.log(turn.reply.debug);
 ```
 
-## OpenClaw integration flow
-1. Keep the existing channel or gateway runtime unchanged.
-2. Map the incoming Clawbot session into `KernelInput` with `mapClawbotSessionToKernelInput()`.
-3. Call `runAgentKernel()` through `handleClawbotTurn()`.
-4. Return `KernelOutput` to the bot transport with `mapKernelOutputToClawbotReply()`.
-5. Inspect `reply.debug`, `kernel.logs`, `riskFlags`, and `memoryWrites` during rollout.
+## list
 
-If you want a reusable onboarding path for teams, install the bundled [`skills/clawbot-onboarding`](skills/clawbot-onboarding/SKILL.md) skill and follow its step-by-step integration checklist.
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/f54f40b1-9aea-4fb4-b762-0fbd64194653" width="700"/>
+</p>
+__________________________________
 
-## Architecture docs
-Detailed architecture is kept in `docs/`:
+
+## Architecture
+
+For a quick repository-owned view of the current AK-project runtime, see:
+
 - [`docs/architecture/AK-system-overview.md`](docs/architecture/AK-system-overview.md)
 - [`docs/architecture/AK-system-mindmap.md`](docs/architecture/AK-system-mindmap.md)
+
+
+## Development
+
+```bash
+npm install
+npm run build
+npm run test:unit
+npm run eval:consistency
+```

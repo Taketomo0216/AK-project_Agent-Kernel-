@@ -1,8 +1,6 @@
 import { runAgentKernel } from './agentKernel';
 import { KernelInput, KernelOutput, MemoryRecord, ProviderKind, TaskType } from './types';
 
-const MAX_CONTEXT_MESSAGES = 6;
-
 export interface ClawbotMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
@@ -18,7 +16,6 @@ export interface ClawbotSession {
   projectState?: string[];
   memory?: MemoryRecord[];
   memorySummary?: string;
-  metadata?: Record<string, string | number | boolean>;
 }
 
 export interface ClawbotReply {
@@ -28,7 +25,6 @@ export interface ClawbotReply {
     provider: ProviderKind;
     riskFlags: string[];
     memoryWrites: MemoryRecord[];
-    logCount: number;
   };
 }
 
@@ -39,7 +35,6 @@ export interface ClawbotAdapterResult {
   transport: {
     channelId?: string;
     preserved: true;
-    messageCount: number;
   };
 }
 
@@ -49,11 +44,7 @@ function selectUserMessage(messages: ClawbotMessage[]): string {
 }
 
 function buildContext(messages: ClawbotMessage[], projectState: string[] = []): string[] {
-  const transcriptContext = messages
-    .slice(-MAX_CONTEXT_MESSAGES)
-    .filter((message) => message.role !== 'user' || message.content !== selectUserMessage(messages))
-    .map((message) => `${message.role}: ${message.content}`);
-
+  const transcriptContext = messages.slice(-6, -1).map((message) => `${message.role}: ${message.content}`);
   return [...projectState.map((state) => `project state: ${state}`), ...transcriptContext];
 }
 
@@ -81,8 +72,7 @@ export function mapClawbotSessionToKernelInput(session: ClawbotSession): KernelI
       sessionId: session.sessionId,
       channelId: session.channelId ?? 'unknown',
       userId: session.userId ?? 'anonymous',
-      source: 'clawbot',
-      ...(session.metadata ?? {})
+      source: 'clawbot'
     }
   };
 }
@@ -94,8 +84,7 @@ export function mapKernelOutputToClawbotReply(kernel: KernelOutput): ClawbotRepl
       route: kernel.route,
       provider: kernel.provider,
       riskFlags: kernel.riskFlags,
-      memoryWrites: kernel.memoryWrites,
-      logCount: kernel.logs.length
+      memoryWrites: kernel.memoryWrites
     }
   };
 }
@@ -110,8 +99,7 @@ export async function handleClawbotTurn(session: ClawbotSession): Promise<Clawbo
     kernel,
     transport: {
       channelId: session.channelId,
-      preserved: true,
-      messageCount: session.messages.length
+      preserved: true
     }
   };
 }
