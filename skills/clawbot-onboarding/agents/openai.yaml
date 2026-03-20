@@ -1,0 +1,3 @@
+display_name: Clawbot Onboarding
+short_description: Integrate Clawbot or OpenClaw with AK-project using the existing adapter path.
+default_prompt: Help integrate a Clawbot or OpenClaw runtime with AK-project through runAgentKernel() while preserving transport behavior and rollout visibility.
